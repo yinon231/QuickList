@@ -1,0 +1,40 @@
+const listsRepository = require("../repository/listsRepository");
+
+exports.createList = async (req, res) => {
+  try {
+    const { name, items } = req.body;
+    const userId = req.user.id; // Assuming user ID is stored in req.user
+    const list = await listsRepository.createList(userId, name, items);
+    res.status(201).json({ message: "List created successfully", list });
+  } catch (error) {
+    console.error("Error creating list:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+exports.getAllLists = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming user ID is stored in req.user
+    const lists = await listsRepository.getAllLists(userId);
+    if (!lists || lists.length === 0) {
+      return res.status(204).json({ message: "No content" });
+    }
+    res.status(200).json(lists);
+  } catch (error) {
+    console.error("Error fetching lists:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+exports.getListById = async (req, res) => {
+  try {
+    const listId = req.params.listId;
+    const userId = req.user.id;
+    const list = await listsRepository.getListById(listId, userId);
+    if (!list) {
+      return res.status(204).json({ message: "No content" });
+    }
+    res.status(200).json(list);
+  } catch (error) {
+    console.error("Error fetching list by ID:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
