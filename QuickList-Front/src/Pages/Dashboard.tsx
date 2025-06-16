@@ -85,6 +85,7 @@ const Dashboard = () => {
               <Button
                 className="mt-2 w-fit"
                 onClick={() => {
+                  //להמשיך לסדר את המעבר לדף עם השליפה והכל
                   navigate(`/lists/${list._id}`);
                 }}
               >
