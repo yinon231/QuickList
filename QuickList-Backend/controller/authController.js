@@ -26,7 +26,7 @@ exports.login = async (req, res) => {
       { id: user._id, email: user.email },
       process.env.ACCESS_TOKEN_SECRET,
       {
-        expiresIn: "10m",
+        expiresIn: "1d",
       }
     );
     const refresh_token = jwt.sign(
@@ -36,10 +36,11 @@ exports.login = async (req, res) => {
         expiresIn: "1d",
       }
     );
+    //הפוך חזרה שעולה לפרודקשןtrue
     res.cookie("jwt", refresh_token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "None",
+      secure: false,
+      sameSite: "Lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
     res.json({ access_token: access_token });

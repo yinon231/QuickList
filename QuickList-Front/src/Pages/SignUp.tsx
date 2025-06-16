@@ -10,9 +10,12 @@ import {
   FormMessage,
 } from "@/Components/ui/form";
 import { Card, CardContent } from "@/Components/ui/card";
-import { date, z } from "zod";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { signup } from "@/Service/http";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const formSchema = z
   .object({
@@ -29,11 +32,18 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 const SignUp = () => {
+  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState("");
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    try {
+      await signup(values.username, values.password, values.confirmPassword);
+      navigate("/signin");
+    } catch (err: any) {
+      setErrorMessage(err.message);
+    }
   };
   return (
     <div className="flex justify-center items-center h-screen">
@@ -114,6 +124,11 @@ const SignUp = () => {
               <div className="mt-8 w-full flex items-center justify-center">
                 <Button className="hover:bg-primary/70">Click</Button>
               </div>
+              {errorMessage && (
+                <p className="text-red-500 text-sm mt-2 text-center">
+                  {errorMessage}
+                </p>
+              )}
               <div className="flex">
                 <Label className="text-md mt-5">
                   Allready have an account?

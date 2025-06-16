@@ -13,6 +13,10 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/Context/AuthContext";
+import { login } from "@/Service/http";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const formSchema = z.object({
   username: z.string().email({
@@ -23,11 +27,20 @@ const formSchema = z.object({
   }),
 });
 const Login = () => {
+  const navigate = useNavigate();
+  const { setAccessToken } = useAuth();
+  const [errorMessage, setErrorMessage] = useState("");
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    try {
+      const res = await login(values.username, values.password);
+      setAccessToken(res.access_token);
+      navigate("/");
+    } catch (err: any) {
+      setErrorMessage(err.message);
+    }
   };
   return (
     <div className="flex justify-center items-center h-screen">
@@ -87,6 +100,11 @@ const Login = () => {
               <div className="mt-8 w-full flex items-center justify-center">
                 <Button className="hover:bg-primary/70">Click</Button>
               </div>
+              {errorMessage && (
+                <p className="text-red-500 text-sm mt-2 text-center">
+                  {errorMessage}
+                </p>
+              )}
               <div className="flex">
                 <Label className="text-md mt-5">Don't have an account?</Label>
                 <Link to="/signup">

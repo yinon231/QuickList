@@ -15,10 +15,7 @@ exports.getAllLists = async (req, res) => {
   try {
     const userId = req.user.id; // Assuming user ID is stored in req.user
     const lists = await listsRepository.getAllLists(userId);
-    if (!lists || lists.length === 0) {
-      return res.status(204).json({ message: "No content" });
-    }
-    res.status(200).json(lists);
+    res.status(200).json(lists || []);
   } catch (error) {
     console.error("Error fetching lists:", error);
     res.status(500).json({ message: "Internal server error" });
