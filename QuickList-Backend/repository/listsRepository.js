@@ -12,3 +12,10 @@ exports.getAllLists = async (userId) => {
 exports.getListById = async (listId, userId) => {
   return await lists.findOne({ _id: listId, userId: userId });
 };
+exports.updateList = async (listId, userId, name, items) => {
+  return await lists.findOneAndUpdate(
+    { _id: listId, userId: userId },
+    { name: name, items: items },
+    { new: true }
+  );
+};

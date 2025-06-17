@@ -75,25 +75,27 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {lists.map((list) => (
-          <Card key={list._id} className="cursor-pointer hover:shadow-md">
-            <CardContent>
-              <CardTitle>{list.name}</CardTitle>
-              <p className="text-sm text-muted-foreground mt-2">
-                {list.items.length} items
-              </p>
-              <Button
-                className="mt-2 w-fit"
-                onClick={() => {
-                  //להמשיך לסדר את המעבר לדף עם השליפה והכל
-                  navigate(`/lists/${list._id}`);
-                }}
-              >
-                Open
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+        {lists &&
+          (console.log("lists", lists),
+          lists.map((list) => (
+            <Card key={list._id} className="cursor-pointer hover:shadow-md">
+              <CardContent>
+                <CardTitle>{list.name}</CardTitle>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {list.items.length} items
+                </p>
+                <Button
+                  className="mt-2 w-fit"
+                  onClick={() => {
+                    //להמשיך לסדר את המעבר לדף עם השליפה והכל
+                    navigate(`/lists/${list._id}`);
+                  }}
+                >
+                  Open
+                </Button>
+              </CardContent>
+            </Card>
+          )))}
       </div>
     </div>
   );

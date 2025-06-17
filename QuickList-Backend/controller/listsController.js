@@ -35,3 +35,23 @@ exports.getListById = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+exports.updateList = async (req, res) => {
+  try {
+    const listId = req.params.listId;
+    const { name, items } = req.body;
+    const userId = req.user.id; // Assuming user ID is stored in req.user
+    const updatedList = await listsRepository.updateList(
+      listId,
+      userId,
+      name,
+      items
+    );
+    if (!updatedList) {
+      return res.status(404).json({ message: "List not found" });
+    }
+    res.status(200).json(updatedList);
+  } catch (error) {
+    console.error("Error updating list:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

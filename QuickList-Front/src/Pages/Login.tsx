@@ -37,6 +37,7 @@ const Login = () => {
     try {
       const res = await login(values.username, values.password);
       setAccessToken(res.access_token);
+      //setErrorMessage("")
       navigate("/");
     } catch (err: any) {
       setErrorMessage(err.message);
