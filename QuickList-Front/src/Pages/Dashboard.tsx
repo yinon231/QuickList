@@ -35,7 +35,7 @@ const Dashboard = () => {
   const [selectedDialog, setSelectDialog] = useState<List | null>(null);
   const handleDeleteList = async (id: string) => {
     try {
-      await deleteList(id, accessToken, setAccessToken);
+      await deleteList(id, accessToken, setAccessToken, navigate);
       await fetchList();
       toast.success("List has been deleted successfully", {});
     } catch (err: any) {
@@ -46,7 +46,7 @@ const Dashboard = () => {
   };
   const fetchList = async () => {
     try {
-      const res = await getLists(accessToken, setAccessToken);
+      const res = await getLists(accessToken, setAccessToken, navigate);
       setLists(res);
     } catch (err: any) {
       console.error("Error loading lists:", err);
@@ -61,7 +61,12 @@ const Dashboard = () => {
       return;
     }
     try {
-      await createList(newListName.trim(), accessToken, setAccessToken);
+      await createList(
+        newListName.trim(),
+        accessToken,
+        setAccessToken,
+        navigate
+      );
       await fetchList();
       setCreateDialogOpen(false);
 
@@ -138,12 +143,14 @@ const Dashboard = () => {
                     }
                   >
                     <DialogTrigger asChild>
-                      <div
-                        className="mt-3 text-red-600 hover:text-red-800 cursor-pointer"
-                        title="מחק רשימה"
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="mt-2 text-red-600 hover:text-red-800 cursor-pointer"
+                        title="delete list"
                       >
-                        <Trash2 size={24} />
-                      </div>
+                        <Trash2 className="size-7" />
+                      </Button>
                     </DialogTrigger>
 
                     <DialogContent>

@@ -1,5 +1,5 @@
 const API_URL = "http://localhost:3000/api/";
-
+import { useNavigate } from "react-router-dom";
 export const login = async (email: string, password: string) => {
   const response = await fetch(`${API_URL}auth/login`, {
     method: "POST",
@@ -39,7 +39,8 @@ export const signup = async (
 
 export const getLists = async (
   token: string,
-  setAccessToken: (token: string) => void
+  setAccessToken: (token: string) => void,
+  navigate: ReturnType<typeof useNavigate>
 ) => {
   let currentToken = token;
   const makeRequest = async () => {
@@ -51,9 +52,9 @@ export const getLists = async (
   };
   let res = await makeRequest();
   if (res.status === 401) {
-    const newToken = await getAccessTokenByRefresh();
+    const newToken = await getAccessTokenByRefresh(navigate);
     if (!newToken) {
-      throw new Error("Unauthorized, please login again");
+      return;
     }
     setAccessToken(newToken);
     currentToken = newToken; // עדכון הטוקן הנוכחי לשימוש בהמשך
@@ -70,7 +71,8 @@ export const getLists = async (
 export const getListById = async (
   id: string,
   token: string,
-  setAccessToken: (token: string) => void
+  setAccessToken: (token: string) => void,
+  navigate: ReturnType<typeof useNavigate>
 ) => {
   let currentToken = token;
   const makeRequest = async () => {
@@ -82,7 +84,7 @@ export const getListById = async (
   };
   let res = await makeRequest();
   if (res.status === 401) {
-    const newToken = await getAccessTokenByRefresh();
+    const newToken = await getAccessTokenByRefresh(navigate);
     if (!newToken) {
       throw new Error("Unauthorized, please login again");
     }
@@ -104,7 +106,8 @@ export const updateList = async (
     items: { name: string; quantity: number; checked: boolean }[];
   },
   accessToken: string,
-  setAccessToken: (token: string) => void
+  setAccessToken: (token: string) => void,
+  navigate: ReturnType<typeof useNavigate>
 ) => {
   let currentToken = accessToken;
   const makeRequest = async () => {
@@ -119,7 +122,7 @@ export const updateList = async (
   };
   let res = await makeRequest();
   if (res.status === 401) {
-    const newToken = await getAccessTokenByRefresh();
+    const newToken = await getAccessTokenByRefresh(navigate);
     if (!newToken) {
       throw new Error("Unauthorized, please login again");
     }
@@ -137,7 +140,8 @@ export const updateList = async (
 export const createList = async (
   name: string,
   accessToken: string,
-  setAccessToken: (token: string) => void
+  setAccessToken: (token: string) => void,
+  navigate: ReturnType<typeof useNavigate>
 ) => {
   let currentToken = accessToken;
   const makeRequest = async (currentToken: string) => {
@@ -152,7 +156,7 @@ export const createList = async (
   };
   let res = await makeRequest(currentToken);
   if (res.status === 401) {
-    const newToken = await getAccessTokenByRefresh();
+    const newToken = await getAccessTokenByRefresh(navigate);
     if (!newToken) {
       throw new Error("Unauthorized, please login again");
     }
@@ -171,7 +175,8 @@ export const createList = async (
 export const deleteList = async (
   id: string,
   accessToken: string,
-  setAccessToken: (token: string) => void
+  setAccessToken: (token: string) => void,
+  navigate: ReturnType<typeof useNavigate>
 ) => {
   let currentToken = accessToken;
   const makeRequest = async () => {
@@ -184,7 +189,7 @@ export const deleteList = async (
   };
   let res = await makeRequest();
   if (res.status === 401) {
-    const newToken = await getAccessTokenByRefresh();
+    const newToken = await getAccessTokenByRefresh(navigate);
     if (!newToken) {
       throw new Error("Unauthorized, please login again");
     }
@@ -199,28 +204,19 @@ export const deleteList = async (
   }
   return res.json();
 };
-const getAccessTokenByRefresh = async () => {
+const getAccessTokenByRefresh = async (
+  navigate: ReturnType<typeof useNavigate>
+) => {
   try {
     const res = await fetch(`${API_URL}auth/refresh`, {
       credentials: "include", // שולח את העוגיה עם refresh_token
     });
-    if (!res.ok) throw new Error("Refresh token invalid");
+    if (!res.ok) {
+      navigate("/signin");
+    }
     const data = await res.json();
     return data.access_token;
   } catch (err) {
-    return null;
+    console.error("Error refreshing access token:", err);
   }
 };
-
-// export const createList = async (name: string, token: string) => {
-//   const res = await fetch(API_URL, {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//       Authorization: `Bearer ${token}`,
-//     },
-//     body: JSON.stringify({ name, items: [] }),
-//   });
-//   if (!res.ok) throw new Error("Failed to create list");
-//   return res.json();
-// };

@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 const formSchema = z.object({
-  username: z.string().email({
+  email: z.string().email({
     message: "Please enter a valid email address",
   }),
   password: z.string().min(6, {
@@ -32,10 +32,14 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const res = await login(values.username, values.password);
+      const res = await login(values.email, values.password);
       setAccessToken(res.access_token);
       //setErrorMessage("")
       navigate("/");
@@ -56,7 +60,7 @@ const Login = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
               <FormField
                 control={form.control}
-                name="username"
+                name="email"
                 render={({ field }) => (
                   <FormItem className="w-full max-w-sm items-center gap-3 mt-4">
                     <Label htmlFor="email" className="text-md">

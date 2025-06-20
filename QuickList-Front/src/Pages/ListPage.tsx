@@ -10,7 +10,7 @@ import { Input } from "@/Components/ui/input";
 import { Checkbox } from "@/Components/ui/checkbox";
 import { Button } from "@/Components/ui/button";
 import { Trash2, Plus } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/Context/AuthContext";
 import { getListById, updateList } from "@/Service/http";
 import { DialogTrigger } from "@radix-ui/react-dialog";
@@ -22,6 +22,7 @@ type List = {
 };
 
 const ListPage = () => {
+  const navigate = useNavigate();
   const { accessToken, setAccessToken } = useAuth();
   const { id } = useParams();
   const [open, setOpen] = useState(false);
@@ -33,7 +34,12 @@ const ListPage = () => {
     if (!id) return;
     const fetchList = async () => {
       try {
-        const list = await getListById(id, accessToken, setAccessToken);
+        const list = await getListById(
+          id,
+          accessToken,
+          setAccessToken,
+          navigate
+        );
         setList(list);
         console.log(list);
       } catch (err: any) {
@@ -121,7 +127,8 @@ const ListPage = () => {
         id,
         updatedList,
         accessToken,
-        setAccessToken
+        setAccessToken,
+        navigate
       );
       setList(res);
       toast.success("List has been updated successfully");
@@ -177,7 +184,7 @@ const ListPage = () => {
             </Dialog>
           </CardHeader>
           <CardContent className="space-y-4">
-            {list?.items.map((item) => (
+            {list.items.map((item) => (
               <div
                 key={item._id}
                 className="flex items-center gap-3 border p-3 rounded-md shadow-sm hover:shadow transition"
