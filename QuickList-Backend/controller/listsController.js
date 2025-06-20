@@ -55,3 +55,17 @@ exports.updateList = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+exports.deleteList = async (req, res) => {
+  try {
+    const listId = req.params.listId;
+    const userId = req.user.id; // Assuming user ID is stored in req.user
+    const deletedList = await listsRepository.deleteList(listId, userId);
+    if (!deletedList) {
+      return res.status(404).json({ message: "List not found" });
+    }
+    res.status(200).json({ message: "List deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting list:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

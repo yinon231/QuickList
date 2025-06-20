@@ -19,3 +19,6 @@ exports.updateList = async (listId, userId, name, items) => {
     { new: true }
   );
 };
+exports.deleteList = async (listId, userId) => {
+  return await lists.findOneAndDelete({ _id: listId, userId: userId });
+};

@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent } from "@/Components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "@/Components/ui/dialog";
 import { Card, CardContent, CardTitle, CardHeader } from "@/Components/ui/card";
 import { Input } from "@/Components/ui/input";
 import { Checkbox } from "@/Components/ui/checkbox";
@@ -8,6 +13,8 @@ import { Trash2, Plus } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "@/Context/AuthContext";
 import { getListById, updateList } from "@/Service/http";
+import { DialogTrigger } from "@radix-ui/react-dialog";
+import { toast } from "sonner";
 type List = {
   _id: string;
   name: string;
@@ -42,6 +49,28 @@ const ListPage = () => {
         ...prev,
         items: prev.items.map((item) =>
           item._id === id ? { ...item, checked: !item.checked } : item
+        ),
+      };
+    });
+  };
+  const changeQuantity = (id: string, newQuantity: number) => [
+    setList((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        items: prev.items.map((item) =>
+          item._id === id ? { ...item, quantity: newQuantity } : item
+        ),
+      };
+    }),
+  ];
+  const changeName = (id: string, newName: string) => {
+    setList((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        items: prev.items.map((item) =>
+          item._id === id ? { ...item, name: newName } : item
         ),
       };
     });
@@ -87,6 +116,7 @@ const ListPage = () => {
         name: list.name,
         items: cleanedItems,
       };
+      console.log(updatedList);
       const res = await updateList(
         id,
         updatedList,
@@ -94,53 +124,60 @@ const ListPage = () => {
         setAccessToken
       );
       setList(res);
+      toast.success("List has been updated successfully");
     } catch (err: any) {
       console.log(err.message);
+      toast.error("List has not been updated", {
+        description: err.message,
+      });
     }
   };
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-4">
-      <Dialog open={open}>
-        <DialogContent>
-          <h2 className="text-lg font-medium mb-2">Add new item</h2>
-          <Input
-            placeholder="לדוגמה: חלב"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              if (error && e.target.value.trim()) {
-                setError(false);
-              }
-            }}
-            aria-invalid={error}
-          />
-          <Input
-            type="number"
-            defaultValue={0}
-            value={quantity}
-            onChange={(e) => setQuantity(Number(e.target.value))}
-          />
+      {list && (
+        <Card>
+          <CardHeader className="flex justify-between">
+            <CardTitle className="text-xl">{list?.name} List</CardTitle>
+            <Dialog open={open} onOpenChange={(isOpen) => setOpen(isOpen)}>
+              <DialogTrigger asChild>
+                <Button
+                  className="mb-1"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setOpen(true)}
+                >
+                  <Plus className="size-6 text-primary" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogTitle>Add new item</DialogTitle>
 
-          <Button className="mt-2 w-fit" onClick={handleAddItem}>
-            Submit
-          </Button>
-        </DialogContent>
-      </Dialog>
-      <Card>
-        <CardHeader className="flex justify-between">
-          <CardTitle className="text-xl">{list?.name} List</CardTitle>
-          <Button
-            className="mb-1"
-            variant="ghost"
-            size="icon"
-            onClick={() => setOpen(true)}
-          >
-            <Plus className="size-6 text-primary" />
-          </Button>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {list &&
-            list?.items.map((item) => (
+                <Input
+                  placeholder="לדוגמה: חלב"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (error && e.target.value.trim()) {
+                      setError(false);
+                    }
+                  }}
+                  aria-invalid={error}
+                />
+                <Input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                />
+                <DialogFooter>
+                  <Button className="mt-2 w-fit" onClick={handleAddItem}>
+                    Submit
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {list?.items.map((item) => (
               <div
                 key={item._id}
                 className="flex items-center gap-3 border p-3 rounded-md shadow-sm hover:shadow transition"
@@ -149,30 +186,39 @@ const ListPage = () => {
                   checked={item.checked}
                   onCheckedChange={() => toggleChange(item._id)}
                 />
-                <Input defaultValue={item.name} className="w-full max-w-xs" />
+                <Input
+                  onChange={(e) => changeName(item._id, e.target.value)}
+                  value={item.name}
+                  className="w-full max-w-xs"
+                />
                 <Input
                   type="number"
-                  defaultValue={item.quantity}
+                  onChange={(e) =>
+                    changeQuantity(item._id, Number(e.target.value))
+                  }
+                  value={item.quantity}
                   className="w-20"
                 />
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="sm"
+                  className="size-8"
                   onClick={() => toggleDelete(item._id)}
                 >
                   <Trash2 className=" text-red-500" />
                 </Button>
               </div>
             ))}
-          <Button
-            variant="default"
-            className="mt-2 w-fit"
-            onClick={handleUpdate}
-          >
-            save
-          </Button>
-        </CardContent>
-      </Card>
+            <Button
+              variant="default"
+              className="mt-2 w-fit"
+              onClick={handleUpdate}
+            >
+              save
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

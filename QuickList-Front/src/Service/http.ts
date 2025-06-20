@@ -42,11 +42,14 @@ export const getLists = async (
   setAccessToken: (token: string) => void
 ) => {
   let currentToken = token;
-  let res = await fetch(`${API_URL}lists`, {
-    headers: {
-      Authorization: `Bearer ${currentToken}`,
-    },
-  });
+  const makeRequest = async () => {
+    return await fetch(`${API_URL}lists`, {
+      headers: {
+        Authorization: `Bearer ${currentToken}`,
+      },
+    });
+  };
+  let res = await makeRequest();
   if (res.status === 401) {
     const newToken = await getAccessTokenByRefresh();
     if (!newToken) {
@@ -54,15 +57,11 @@ export const getLists = async (
     }
     setAccessToken(newToken);
     currentToken = newToken; // עדכון הטוקן הנוכחי לשימוש בהמשך
+    res = await makeRequest(); // ניסיון נוסף עם הטוקן החדש
   }
-  res = await fetch(`${API_URL}lists`, {
-    headers: {
-      Authorization: `Bearer ${currentToken}`,
-    },
-  });
 
   if (!res.ok) {
-    const text = await res.text(); // לקרוא מה כן חזר
+    const text = await res.json(); // לקרוא מה כן חזר
     console.error("Response body:", text);
     throw new Error("Failed to fetch lists");
   }
@@ -74,27 +73,25 @@ export const getListById = async (
   setAccessToken: (token: string) => void
 ) => {
   let currentToken = token;
-  let res = await fetch(`${API_URL}lists/${id}`, {
-    headers: {
-      Authorization: `Bearer ${currentToken}`,
-    },
-  });
+  const makeRequest = async () => {
+    return await fetch(`${API_URL}lists/${id}`, {
+      headers: {
+        Authorization: `Bearer ${currentToken}`,
+      },
+    });
+  };
+  let res = await makeRequest();
   if (res.status === 401) {
     const newToken = await getAccessTokenByRefresh();
     if (!newToken) {
       throw new Error("Unauthorized, please login again");
     }
     setAccessToken(newToken);
-    currentToken = newToken; // עדכון הטוקן הנוכחי לשימוש בהמשך
+    currentToken = newToken;
+    res = await makeRequest();
   }
-  res = await fetch(`${API_URL}lists/${id}`, {
-    headers: {
-      Authorization: `Bearer ${currentToken}`,
-    },
-  });
-
   if (!res.ok) {
-    const text = await res.text(); // לקרוא מה כן חזר
+    const text = await res.json(); // לקרוא מה כן חזר
     console.error("Response body:", text);
     throw new Error("Failed to fetch lists");
   }
@@ -110,14 +107,17 @@ export const updateList = async (
   setAccessToken: (token: string) => void
 ) => {
   let currentToken = accessToken;
-  const res = await fetch(`${API_URL}lists/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${currentToken}`,
-    },
-    body: JSON.stringify(list),
-  });
+  const makeRequest = async () => {
+    return await fetch(`${API_URL}lists/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${currentToken}`,
+      },
+      body: JSON.stringify(list),
+    });
+  };
+  let res = await makeRequest();
   if (res.status === 401) {
     const newToken = await getAccessTokenByRefresh();
     if (!newToken) {
@@ -125,21 +125,79 @@ export const updateList = async (
     }
     setAccessToken(newToken);
     currentToken = newToken; // עדכון הטוקן הנוכחי לשימוש בהמשך
+    res = await makeRequest(); // ניסיון נוסף עם הטוקן החדש
   }
-  const updatedRes = await fetch(`${API_URL}lists/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${currentToken}`,
-    },
-  });
-
-  if (!updatedRes.ok) {
-    const text = await updatedRes.text(); // לקרוא מה כן חזר
+  if (!res.ok) {
+    const text = await res.json(); // לקרוא מה כן חזר
     console.error("Response body:", text);
     throw new Error("Failed to update list");
   }
-  return updatedRes.json();
+  return res.json();
+};
+export const createList = async (
+  name: string,
+  accessToken: string,
+  setAccessToken: (token: string) => void
+) => {
+  let currentToken = accessToken;
+  const makeRequest = async (currentToken: string) => {
+    return await fetch(`${API_URL}lists`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${currentToken}`,
+      },
+      body: JSON.stringify({ name, items: [] }),
+    });
+  };
+  let res = await makeRequest(currentToken);
+  if (res.status === 401) {
+    const newToken = await getAccessTokenByRefresh();
+    if (!newToken) {
+      throw new Error("Unauthorized, please login again");
+    }
+    setAccessToken(newToken);
+    currentToken = newToken; // עדכון הטוקן הנוכחי לשימוש בהמשך
+    res = await makeRequest(currentToken); // ניסיון נוסף עם הטוקן החדש
+  }
+
+  if (!res.ok) {
+    const text = await res.json(); // לקרוא מה כן חזר
+    console.error("Response body:", text);
+    throw new Error("Failed to create list");
+  }
+  return res.json();
+};
+export const deleteList = async (
+  id: string,
+  accessToken: string,
+  setAccessToken: (token: string) => void
+) => {
+  let currentToken = accessToken;
+  const makeRequest = async () => {
+    return await fetch(`${API_URL}lists/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${currentToken}`,
+      },
+    });
+  };
+  let res = await makeRequest();
+  if (res.status === 401) {
+    const newToken = await getAccessTokenByRefresh();
+    if (!newToken) {
+      throw new Error("Unauthorized, please login again");
+    }
+    setAccessToken(newToken);
+    currentToken = newToken; // עדכון הטוקן הנוכחי לשימוש בהמשך
+    res = await makeRequest(); // ניסיון נוסף עם הטוקן החדש
+  }
+  if (!res.ok) {
+    const text = await res.json(); // לקרוא מה כן חזר
+    console.error("Response body:", text);
+    throw new Error("Failed to delete list");
+  }
+  return res.json();
 };
 const getAccessTokenByRefresh = async () => {
   try {
